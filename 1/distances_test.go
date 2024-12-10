@@ -7,7 +7,7 @@ import (
 )
 
 func TestDistances(t *testing.T) {
-	t.Run("Calculate total distance from two lists.", func(t *testing.T) {
+	t.Run("Calculate total distance and similarity score from two lists.", func(t *testing.T) {
 		input := bytes.NewReader([]byte(`3   4
 										 4   3
 										 2   5
@@ -15,8 +15,28 @@ func TestDistances(t *testing.T) {
 										 3   9
 										 3   3`))
 
-		want := 11
-		got, err := run(input)
+		expDistance := 11
+		expSimilarity := 31
+		outDistance, outSimilarity, err := run(input)
+
+		if err != nil {
+			t.Fatalf("unexpected error: %v\n", err)
+		}
+
+		if outDistance != expDistance {
+			t.Errorf("outDistance %v expDistance %v", outDistance, expDistance)
+		}
+
+		if outSimilarity != expSimilarity {
+			t.Errorf("outSimilarity %v expSimilarity %v", outSimilarity, expSimilarity)
+		}
+	})
+	t.Run("Calculate similarity from sorted lists", func(t *testing.T) {
+		inpList1 := []int{2, 4, 5}
+		inpList2 := []int{3, 4, 6}
+
+		want := 4
+		got, err := calculateSimilarity(inpList1, inpList2)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v\n", err)

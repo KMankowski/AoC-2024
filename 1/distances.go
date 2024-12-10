@@ -17,26 +17,93 @@ func main() {
 	inputFile, err := os.Open("input.txt")
 	outputError(err)
 
-	puzzleOutput, err := run(inputFile)
+	puzzleOutputPart1, puzzleOutputPart2, err := run(inputFile)
 	outputError(err)
 
-	fmt.Printf("%v", puzzleOutput)
+	fmt.Printf("part 1: %v\npart 2: %v\n", puzzleOutputPart1, puzzleOutputPart2)
 }
 
-func run(puzzleInput io.Reader) (int, error) {
+func run(puzzleInput io.Reader) (int, int, error) {
 	list1, list2, err := readLists(puzzleInput)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
+	// Part 1
 	distances, err := calculateDistances(list1, list2)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	totalDistance := calculateDistance(distances)
 
-	return totalDistance, nil
+	// Part 2
+	similarity, err := calculateSimilarity(list1, list2)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return totalDistance, similarity, nil
+}
+
+func calculateSimilarity(list1 []int, list2 []int) (int, error) {
+	if len(list1) != len(list2) {
+		return 0, errors.New("input lists are not the same length to similarity")
+	}
+
+	similarityScore := 0
+	pointer1 := 0
+	pointer2 := 0
+	for pointer1 != len(list1) && pointer2 != len(list2) {
+		list1Val := list1[pointer1]
+		list2Val := list2[pointer2]
+
+		if list1Val < list2Val {
+			pointer1++
+			continue
+		}
+
+		if list1Val > list2Val {
+			pointer2++
+			continue
+		}
+
+		tempPointer2 := pointer2
+		for tempPointer2 != len(list2) {
+			if list1Val == list2[tempPointer2] {
+				similarityScore += list1Val
+				tempPointer2++
+			} else {
+				break
+			}
+		}
+		pointer1++
+	}
+
+	return similarityScore, nil
+}
+
+func calculateDistances(list1 []int, list2 []int) ([]int, error) {
+	if len(list1) != len(list2) {
+		return nil, errors.New("input lists are not the same length to distances")
+	}
+
+	distances := make([]int, len(list1))
+
+	for i := range distances {
+		distance := list1[i] - list2[i]
+		distances[i] = int(math.Abs(float64(distance)))
+	}
+
+	return distances, nil
+}
+
+func calculateDistance(distances []int) int {
+	sum := 0
+	for _, distance := range distances {
+		sum += distance
+	}
+	return sum
 }
 
 func readLists(puzzleInput io.Reader) ([]int, []int, error) {
@@ -71,29 +138,6 @@ func readLists(puzzleInput io.Reader) ([]int, []int, error) {
 	slices.Sort(list2)
 
 	return list1, list2, nil
-}
-
-func calculateDistances(list1 []int, list2 []int) ([]int, error) {
-	if len(list1) != len(list2) {
-		return nil, errors.New("input lists are not the same length")
-	}
-
-	distances := make([]int, len(list1))
-
-	for i := range distances {
-		distance := list1[i] - list2[i]
-		distances[i] = int(math.Abs(float64(distance)))
-	}
-
-	return distances, nil
-}
-
-func calculateDistance(distances []int) int {
-	sum := 0
-	for _, distance := range distances {
-		sum += distance
-	}
-	return sum
 }
 
 func outputErrorFunc() func(error) {
