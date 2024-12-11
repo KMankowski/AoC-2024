@@ -16,15 +16,20 @@ func TestRun(t *testing.T) {
 		 8 6 4 4 1
 		 1 3 6 7 9`
 
-		want := 2
-		got, err := run(strings.NewReader(inputReports))
+		wantPartOne := 2
+		wantPartTwo := 4
+		gotPartOne, gotPartTwo, err := run(strings.NewReader(inputReports))
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v\n", err)
 		}
 
-		if got != want {
-			t.Errorf("got %v want %v", got, want)
+		if gotPartOne != wantPartOne {
+			t.Errorf("gotPartOne %v wantPartOne %v", gotPartOne, wantPartOne)
+		}
+
+		if gotPartTwo != wantPartTwo {
+			t.Errorf("gotPartTwo %v wantPartTwo %v", gotPartTwo, wantPartTwo)
 		}
 	})
 }

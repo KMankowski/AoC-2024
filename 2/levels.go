@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -16,19 +17,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	safeReportCount, err := run(inputFile)
+	safeReportCount, safeReportWithDampenerCount, err := run(inputFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error occurred in run(): %v\n", err)
 		os.Exit(2)
 	}
 
 	fmt.Printf("safeReportCount: %v\n", safeReportCount)
+	fmt.Printf("safeReportWithDampenerCount: %v\n", safeReportWithDampenerCount)
 }
 
-func run(input io.Reader) (int, error) {
+func run(input io.Reader) (int, int, error) {
 	reports, err := readReports(input)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	safeReportCount := 0
@@ -38,7 +40,14 @@ func run(input io.Reader) (int, error) {
 		}
 	}
 
-	return safeReportCount, nil
+	safeReportWithDampenerCount := 0
+	for _, report := range reports {
+		if isSafeWithDampener(report) {
+			safeReportWithDampenerCount++
+		}
+	}
+
+	return safeReportCount, safeReportWithDampenerCount, nil
 }
 
 func readReports(input io.Reader) ([][]int, error) {
@@ -83,6 +92,27 @@ func isSafe(report []int) bool {
 		} else {
 			if difference >= 0 || difference < -3 {
 				return false
+			}
+		}
+	}
+	return true
+}
+
+func isSafeWithDampener(report []int) bool {
+	if isSafe(report[1:]) {
+		return true
+	}
+
+	isAscending := report[1]-report[0] >= 0
+	for i := range report[:len(report)-1] {
+		difference := report[i+1] - report[i]
+		if isAscending {
+			if difference <= 0 || difference > 3 {
+				return isSafe(slices.Concat(report[:i+1], report[i+2:])) || isSafe(slices.Concat(report[:i], report[i+1:]))
+			}
+		} else {
+			if difference >= 0 || difference < -3 {
+				return isSafe(slices.Concat(report[:i+1], report[i+2:])) || isSafe(slices.Concat(report[:i], report[i+1:]))
 			}
 		}
 	}
